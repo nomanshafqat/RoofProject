@@ -28,26 +28,8 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 voc_classes = {
-    'aeroplane'   : 0,
-    'bicycle'     : 1,
-    'bird'        : 2,
-    'boat'        : 3,
-    'bottle'      : 4,
-    'bus'         : 5,
-    'car'         : 6,
-    'cat'         : 7,
-    'chair'       : 8,
-    'cow'         : 9,
-    'diningtable' : 10,
-    'dog'         : 11,
-    'horse'       : 12,
-    'motorbike'   : 13,
-    'person'      : 14,
-    'pottedplant' : 15,
-    'sheep'       : 16,
-    'sofa'        : 17,
-    'train'       : 18,
-    'tvmonitor'   : 19
+    'ac'   : 0,
+
 }
 
 
@@ -77,9 +59,9 @@ class PascalVocGenerator(Generator):
         data_dir,
         set_name,
         classes=voc_classes,
-        image_extension='.jpg',
-        skip_truncated=False,
-        skip_difficult=False,
+        image_extension='.png',
+        skip_truncated=True,
+        skip_difficult=True,
         **kwargs
     ):
         """ Initialize a Pascal VOC data generator.
@@ -91,11 +73,15 @@ class PascalVocGenerator(Generator):
         self.data_dir             = data_dir
         self.set_name             = set_name
         self.classes              = classes
-        self.image_names          = [l.strip().split(None, 1)[0] for l in open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()]
+        lines=open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()
+        for line in lines:
+            print(line[:-3])
+        self.image_names = [l[:-8] for l in open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()]
+
+        print(self.image_names)
         self.image_extension      = image_extension
         self.skip_truncated       = skip_truncated
         self.skip_difficult       = skip_difficult
-
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key
@@ -126,6 +112,8 @@ class PascalVocGenerator(Generator):
         """ Compute the aspect ratio for an image with image_index.
         """
         path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
+        print(path)
+
         image = Image.open(path)
         return float(image.width) / float(image.height)
 
@@ -138,9 +126,8 @@ class PascalVocGenerator(Generator):
     def __parse_annotation(self, element):
         """ Parse an annotation given an XML element.
         """
-        truncated = _findNode(element, 'truncated', parse=int)
-        difficult = _findNode(element, 'difficult', parse=int)
-
+        truncated = 0
+        difficult = 0
         class_name = _findNode(element, 'name').text
         if class_name not in self.classes:
             raise ValueError('class name \'{}\' not found in classes: {}'.format(class_name, list(self.classes.keys())))

@@ -19,6 +19,7 @@ import keras_resnet
 import keras_resnet.models
 from . import retinanet
 from . import Backbone
+import keras.applications.imagenet_utils
 
 
 class ResNetBackbone(Backbone):
